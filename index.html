@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dramadash - Premium Mini Drama Streaming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <div class="nav-blur"></div>
+        <div class="nav-content">
+            <div class="logo">DRAMA<span>DASH</span></div>
+            <div class="nav-right">
+                <div id="wallet" class="wallet-pill">
+                    <i data-lucide="coins"></i>
+                    <span>0</span>
+                </div>
+                <button class="logout-btn" onclick="logoutUser()">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-view" class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <span class="badge">Trending Now</span>
+                <h1 id="hero-title">Unleash the Drama</h1>
+                <p>Bite-sized stories, massive emotions. Watch anywhere, anytime.</p>
+                <div class="hero-actions">
+                    <button class="btn-primary">Watch Now</button>
+                    <button class="btn-secondary">My List</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="drama-section">
+            <div class="section-header">
+                <h2>Popular Shows</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <div id="drama-grid" class="drama-grid"></div>
+        </section>
+    </main>
+
+    <!-- EPISODES VIEW -->
+    <div id="episodes-view" class="container hidden">
+        <div class="episodes-header">
+            <button class="back-btn" onclick="backToDramas()">
+                <i data-lucide="chevron-left"></i> Back
+            </button>
+            <div class="episode-info">
+                <div class="episode-poster-mini" id="episode-poster-mini"></div>
+                <div class="episode-text-info">
+                    <h2 id="episode-drama-title"></h2>
+                    <p id="episode-drama-desc">Explore the latest episodes of this thrilling drama.</p>
+                </div>
+            </div>
+        </div>
+        <div class="episodes-section">
+            <h3>Select Episode</h3>
+            <div id="episodes-list" class="episodes-grid"></div>
+        </div>
+    </div>
+
+    <!-- PLAYER MODAL -->
+    <div id="player-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closePlayer()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="playing-title">Playing Episode</h3>
+                <button class="close-btn" onclick="closePlayer()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="video-container">
+                <video id="video" controls controlsList="nodownload" poster=""></video>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/wallet.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    <!-- <script>
+        checkSession(false);
+    </script> -->
+
+</body>
+
+</html>
