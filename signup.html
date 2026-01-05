@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Sign Up - Dramadash</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="logo" style="text-align: center; margin-bottom: 30px;">DRAMA<span>DASH</span></div>
+            <h2>Create Account</h2>
+            <p>Join Dramadash to access bite-sized premium entertainment.</p>
+
+            <div class="input-group">
+                <input id="email" type="email" placeholder="Email address">
+            </div>
+            <div class="input-group">
+                <input id="password" type="password" placeholder="Password (min 6 characters)">
+            </div>
+
+            <button onclick="signupUser()">Create Account</button>
+
+            <p id="auth-msg"></p>
+
+            <p class="switch">
+                Already have an account?
+                <a href="login.html">Login</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        checkSession(true);
+        lucide.createIcons();
+    </script>
+
+</body>
+
+</html>
