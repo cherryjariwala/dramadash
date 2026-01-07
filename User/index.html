@@ -6,9 +6,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="../supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/wallet.js"></script>
+    <script src="js/app.js"></script>
+
 </head>
 
 <body>
@@ -22,6 +27,10 @@
                     <i data-lucide="coins"></i>
                     <span>0</span>
                 </div>
+                <button class="earn-btn" onclick="watchAdAndEarn()" title="Watch Ad to Earn 10 Coins"
+                    style="background: var(--accent); color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: var(--transition);">
+                    <i data-lucide="play-circle" style="width: 14px; height: 14px;"></i> Free Coins
+                </button>
                 <button class="logout-btn" onclick="logoutUser()">
                     <i data-lucide="log-out"></i>
                 </button>
@@ -63,6 +72,11 @@
                 <div class="episode-poster-mini" id="episode-poster-mini"></div>
                 <div class="episode-text-info">
                     <h2 id="episode-drama-title"></h2>
+                    <div class="drama-meta"
+                        style="display: flex; gap: 10px; margin-bottom: 10px; font-size: 0.85rem; opacity: 0.8;">
+                        <span id="episode-drama-genre"></span>
+                        <span id="episode-drama-rating" style="color: #ffcc00; font-weight: 700;"></span>
+                    </div>
                     <p id="episode-drama-desc">Explore the latest episodes of this thrilling drama.</p>
                 </div>
             </div>
@@ -88,11 +102,6 @@
             </div>
         </div>
     </div>
-    <script src="js/supabase.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/wallet.js"></script>
-    <script src="js/app.js"></script>
-
     <script>
         lucide.createIcons();
     </script>

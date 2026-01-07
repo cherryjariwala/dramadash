@@ -2,30 +2,562 @@
 <html>
 
 <head>
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - Dramadash</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --sidebar-width: 260px;
+        }
+
+        body {
+            display: flex;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 40px;
+            padding-left: 10px;
+        }
+
+        .sidebar-logo span {
+            color: var(--accent);
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 20px;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .admin-card {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+
+        .admin-card h3 {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            background: #1a1a1a;
+            /* solid dark background for selects */
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+            appearance: none;
+            /* remove default arrow to custom style it later */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 18px;
+        }
+
+        .form-group option {
+            background: #1a1a1a;
+            color: white;
+            padding: 10px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #252525;
+        }
+
+        .admin-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .admin-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .admin-btn.secondary {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        /* TABLE STYLES */
+        .mgmt-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        .mgmt-table th {
+            text-align: left;
+            padding: 10px 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .mgmt-table tr {
+            background: rgba(255, 255, 255, 0.02);
+            transition: var(--transition);
+        }
+
+        .mgmt-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .mgmt-table td {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mgmt-table td:first-child {
+            border-left: 1px solid var(--border);
+            border-radius: 12px 0 0 12px;
+        }
+
+        .mgmt-table td:last-child {
+            border-right: 1px solid var(--border);
+            border-radius: 0 12px 12px 0;
+            text-align: right;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge.free {
+            background: rgba(0, 184, 148, 0.1);
+            color: #00b894;
+        }
+
+        .badge.paid {
+            background: rgba(255, 118, 117, 0.1);
+            color: #ff7675;
+        }
+
+        /* MODAL */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 
 <body>
 
-    <h2>Admin Panel</h2>
+    <aside class="sidebar">
+        <div class="sidebar-logo">DRAMA<span>DASH</span></div>
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="switchSection('dashboard')">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </div>
+            <div class="nav-item" onclick="switchSection('add-drama')">
+                <i data-lucide="plus-circle"></i> Add Drama
+            </div>
+            <div class="nav-item" onclick="switchSection('manage-dramas')">
+                <i data-lucide="film"></i> Manage Dramas
+            </div>
+            <div class="nav-item" onclick="switchSection('add-episode')">
+                <i data-lucide="video"></i> Add Episode
+            </div>
+            <div class="nav-item" onclick="switchSection('manage-episodes')">
+                <i data-lucide="layers"></i> Manage Episodes
+            </div>
+        </nav>
+        <div class="sidebar-footer" style="padding-top: 20px; border-top: 1px solid var(--border);">
+            <div class="nav-item" onclick="location.href='../User/index.html'">
+                <i data-lucide="layout"></i> User View
+            </div>
+            <div class="nav-item" onclick="logoutUser()" style="color: #ff7675;">
+                <i data-lucide="log-out"></i> Logout
+            </div>
+        </div>
+    </aside>
 
-    <input id="title" placeholder="Drama Title">
-    <input id="poster" placeholder="Poster URL">
-    <button onclick="createDrama()">Add Drama</button>
+    <main class="main-content">
+        <!-- DASHBOARD OVERVIEW -->
+        <section id="dashboard" class="content-section active">
+            <div class="section-header">
+                <h2>Welcome, Admin</h2>
+                <p style="color: var(--text-secondary);">Manage your Dramadash content from here.</p>
+            </div>
 
-    <hr>
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <h3 style="margin-bottom: 10px;"><i data-lucide="film"></i> <span id="stat-dramas">0</span></h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Total Dramas</p>
+                </div>
+                <div class="admin-card" style="margin-bottom: 0;">
+                    <h3 style="margin-bottom: 10px;"><i data-lucide="video"></i> <span id="stat-episodes">0</span></h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Total Episodes</p>
+                </div>
+            </div>
 
-    <input id="drama" placeholder="Drama ID">
-    <input id="episode" placeholder="Episode Number">
-    <input id="video" placeholder="Video URL">
-    <input id="price" placeholder="Price">
-    <button onclick="uploadEpisode()">Upload Episode</button>
+            <div class="admin-card" style="margin-top: 30px;">
+                <h3><i data-lucide="zap"></i> Quick Seed (Testing)</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Use this to quickly
+                    test the vertical short drama experience.</p>
+                <button class="admin-btn" onclick="seedSampleDrama()"
+                    style="width: auto; padding: 12px 25px; background: #00b894;">
+                    Seed Sample Content
+                </button>
+            </div>
+        </section>
+
+        <!-- ADD DRAMA -->
+        <section id="add-drama" class="content-section">
+            <div class="section-header">
+                <h2>Add New Drama</h2>
+            </div>
+
+            <div class="admin-card">
+                <div
+                    style="background: rgba(255, 44, 85, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px dashed var(--accent);">
+                    <label
+                        style="display: block; margin-bottom: 8px; font-size: 0.8rem; font-weight: 700; color: var(--accent);">QUICK
+                        SEARCH (WATCHMODE)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input id="watchmode-search" placeholder="Search title..." style="flex: 1;">
+                        <button onclick="searchWatchmode()" class="admin-btn"
+                            style="width: auto; padding: 10px 20px; margin-top: 0;"><i
+                                data-lucide="search"></i></button>
+                    </div>
+                    <div id="search-results"
+                        style="margin-top: 10px; max-height: 200px; overflow-y: auto; display: none; background: var(--bg-dark); border-radius: 8px; border: 1px solid var(--border);">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Drama Title</label>
+                        <input id="title" placeholder="e.g. Forbidden Love">
+                    </div>
+                    <div class="form-group">
+                        <label>Genre</label>
+                        <input id="genre" placeholder="e.g. Romance, Drama">
+                    </div>
+                    <div class="form-group">
+                        <label>Rating</label>
+                        <input id="rating" placeholder="e.g. 8.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Poster URL</label>
+                        <input id="poster" placeholder="https://image.url/poster.jpg">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description (Plot)</label>
+                    <textarea id="description" placeholder="Short description..." style="height: 100px;"></textarea>
+                </div>
+                <button class="admin-btn" onclick="createDrama()">
+                    <i data-lucide="save"></i> Create Drama
+                </button>
+            </div>
+
+            <div class="admin-card">
+                <h3><i data-lucide="link"></i> Smart Import (Playlist/URL)</h3>
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <input id="import-url" placeholder="Paste YouTube Playlist URL..." style="flex: 1;">
+                    <button class="admin-btn" onclick="smartImport()" style="width: auto; padding: 0 30px;">Import
+                        All</button>
+                </div>
+                <div id="import-status"
+                    style="display: none; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+                </div>
+            </div>
+        </section>
+
+        <!-- MANAGE DRAMAS -->
+        <section id="manage-dramas" class="content-section">
+            <div class="section-header">
+                <h2>Manage Dramas</h2>
+            </div>
+            <div class="admin-card">
+                <table class="mgmt-table" id="dramas-table">
+                    <thead>
+                        <tr>
+                            <th>Drama</th>
+                            <th>Genre</th>
+                            <th>Rating</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dramas-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ADD EPISODE -->
+        <section id="add-episode" class="content-section">
+            <div class="section-header">
+                <h2>Add Episode</h2>
+            </div>
+            <div class="admin-card">
+                <div class="form-group">
+                    <label>Select Drama</label>
+                    <select id="drama-select">
+                        <option value="">Loading dramas...</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Episode Number</label>
+                        <input id="episode-no" type="number" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Price (Coins)</label>
+                        <input id="episode-price" type="number" value="0" placeholder="0 for free">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Video URL (MP4 or YouTube)</label>
+                    <input id="video-url" placeholder="https://...">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="admin-btn" onclick="uploadEpisode()" style="flex: 2;">
+                        <i data-lucide="upload"></i> Upload Episode
+                    </button>
+                    <button class="admin-btn secondary" onclick="syncWatchmodeEpisodes()" style="flex: 1;">
+                        <i data-lucide="refresh-cw"></i> Sync API
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MANAGE EPISODES -->
+        <section id="manage-episodes" class="content-section">
+            <div class="section-header">
+                <h2>Manage Episodes</h2>
+            </div>
+            <div class="admin-card">
+                <div class="form-group">
+                    <label>Filter by Drama</label>
+                    <select id="episode-mgmt-select" onchange="loadEpisodesForMgmt(this.value)">
+                        <option value="">Choose a drama...</option>
+                    </select>
+                </div>
+                <table class="mgmt-table" id="episodes-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Price</th>
+                            <th>Source</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="episodes-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- EDIT DRAMA MODAL -->
+    <div id="edit-drama-modal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Drama</h3>
+            <input type="hidden" id="edit-drama-id">
+            <div class="form-group">
+                <label>Title</label>
+                <input id="edit-title">
+            </div>
+            <div class="form-group">
+                <label>Genre</label>
+                <input id="edit-genre">
+            </div>
+            <div class="form-group">
+                <label>Rating</label>
+                <input id="edit-rating">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="edit-description" style="height: 100px;"></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="admin-btn" onclick="updateDrama()">Save Changes</button>
+                <button class="admin-btn secondary" onclick="closeModal('edit-drama-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT EPISODE MODAL -->
+    <div id="edit-episode-modal" class="modal">
+        <div class="modal-content">
+            <h3>Edit Episode</h3>
+            <input type="hidden" id="edit-episode-id">
+            <input type="hidden" id="edit-episode-drama-id">
+            <div class="form-group">
+                <label>Episode Number</label>
+                <input id="edit-ep-no" type="number">
+            </div>
+            <div class="form-group">
+                <label>Price (Coins)</label>
+                <input id="edit-ep-price" type="number">
+            </div>
+            <div class="form-group">
+                <label>Video URL</label>
+                <input id="edit-ep-video">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="admin-btn" onclick="updateEpisode()">Save Changes</button>
+                <button class="admin-btn secondary" onclick="closeModal('edit-episode-modal')">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <script src="../supabase.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/admin.js"></script>
+    <script>
+        lucide.createIcons();
+        function logoutUser() {
+            supabase.auth.signOut().then(() => {
+                location.href = "../User/login.html";
+            });
+        }
+    </script>
 </body>
 
 </html>

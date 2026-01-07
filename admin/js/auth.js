@@ -8,7 +8,7 @@ async function protectAdminPage() {
         .eq("id", data.user.id)
         .single();
 
-    if (profile.role !== "admin") {
+    if (!profile || profile.role !== "admin") {
         alert("Access denied");
         location.href = "../User/index.html";
     }

@@ -7,19 +7,43 @@ async function loginUser() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
+    if (!email || !password) return alert("Please fill in all fields");
+
     const { data, error } = await supabase.auth.signInWithPassword({
         email, password
     });
 
     if (error) return alert(error.message);
 
-    const { data: profile } = await supabase
+    // Fetch user profile to check role
+    const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("role")
         .eq("id", data.user.id)
         .single();
 
-    if (profile.role === "admin") {
+    if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        // If profile doesn't exist, try to create one (fallback)
+        if (profileError.code === "PGRST116" || profileError.message.includes("0 rows")) {
+            console.log("Profile not found, creating default profile...");
+            await supabase.from("profiles").upsert({
+                id: data.user.id,
+                email: data.user.email,
+                coins: 10,
+                role: "user"
+            });
+            window.location.href = "index.html";
+            return;
+        }
+
+        alert("Server error during login. Please contact support. (Code: " + profileError.code + ")");
+        window.location.href = "index.html";
+        return;
+    }
+
+    console.log("User profile found:", profile);
+    if (profile && profile.role === "admin") {
         window.location.href = "../admin/dashboard.html";
     } else {
         window.location.href = "index.html";
@@ -36,18 +60,22 @@ async function signupUser() {
         password
     });
 
-    if (error) return alert(error.message);
+    if (error) {
+        console.error("Signup error:", error);
+        return alert(error.message);
+    }
 
     if (data.user) {
-        await supabase.from("profiles").upsert({
+        const { error: profileError } = await supabase.from("profiles").upsert({
             id: data.user.id,
             email,
             coins: 10,
             role: "user"
         });
+        if (profileError) console.error("Error creating profile on signup:", profileError);
     }
 
-    alert("Account created!");
+    alert("Account created successfully!");
     window.location.href = "login.html";
 }
 

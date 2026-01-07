@@ -520,6 +520,33 @@ video {
     display: none !important;
 }
 
+
+.earn-btn:hover {
+    background: var(--accent-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 44, 85, 0.4);
+}
+
+.earn-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* RESPONSIVE */
 @media (max-width: 1024px) {
     .container {
