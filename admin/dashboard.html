@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <h2>Admin Panel</h2>
+
+    <input id="title" placeholder="Drama Title">
+    <input id="poster" placeholder="Poster URL">
+    <button onclick="createDrama()">Add Drama</button>
+
+    <hr>
+
+    <input id="drama" placeholder="Drama ID">
+    <input id="episode" placeholder="Episode Number">
+    <input id="video" placeholder="Video URL">
+    <input id="price" placeholder="Price">
+    <button onclick="uploadEpisode()">Upload Episode</button>
+
+    <script src="../supabase.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

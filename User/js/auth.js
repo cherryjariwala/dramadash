@@ -7,28 +7,48 @@ async function loginUser() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
         email, password
     });
 
     if (error) return alert(error.message);
-    window.location.href = "index.html";
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+    if (profile.role === "admin") {
+        window.location.href = "../admin/dashboard.html";
+    } else {
+        window.location.href = "index.html";
+    }
 }
+
 
 async function signupUser() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email,
-        password,
-        options: {
-            emailRedirectTo: window.location.origin + "/login.html"
-        }
+        password
     });
 
     if (error) return alert(error.message);
-    alert("Check your email to confirm signup");
+
+    if (data.user) {
+        await supabase.from("profiles").upsert({
+            id: data.user.id,
+            email,
+            coins: 10,
+            role: "user"
+        });
+    }
+
+    alert("Account created!");
+    window.location.href = "login.html";
 }
 
 async function logoutUser() {
@@ -40,18 +60,4 @@ async function protectPage() {
     const user = await getUser();
     if (!user) window.location.href = "login.html";
     return user;
-}
-
-async function checkSession(isAuthPage) {
-    const user = await getUser();
-    if (isAuthPage && user) {
-        window.location.href = "index.html";
-    } else if (!isAuthPage && !user) {
-        window.location.href = "login.html";
-    }
-}
-
-async function handleAuthRedirect() {
-    // Supabase handles the email confirmation link automatically
-    // You can add logic here if you need to handle specific hash fragments
 }

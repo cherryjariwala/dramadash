@@ -1,20 +1,17 @@
-import express from "express";
-import Razorpay from "razorpay";
+import crypto from "crypto";
 
-const app = express();
-app.use(express.json());
+app.post("/verify-payment", (req, res) => {
+    const { order_id, payment_id, signature } = req.body;
 
-const razorpay = new Razorpay({
-    key_id: "RAZORPAY_KEY",
-    key_secret: "RAZORPAY_SECRET"
+    const body = order_id + "|" + payment_id;
+    const expected = crypto
+        .createHmac("sha256", process.env.RAZORPAY_SECRET)
+        .update(body)
+        .digest("hex");
+
+    if (expected === signature) {
+        res.json({ success: true });
+    } else {
+        res.status(400).json({ success: false });
+    }
 });
-
-app.post("/order", async (req, res) => {
-    const order = await razorpay.orders.create({
-        amount: req.body.amount * 100,
-        currency: "INR"
-    });
-    res.json(order);
-});
-
-app.listen(4000);
