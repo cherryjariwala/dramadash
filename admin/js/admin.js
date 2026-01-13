@@ -43,14 +43,17 @@ async function loadDashboardStats() {
 // --- DRAMA CRUD ---
 async function loadDramasForSelect() {
     const { data } = await supabase.from("dramas").select("id, title").order("title");
-    const select = document.getElementById("drama-select");
-    if (select) {
-        select.innerHTML = '<option value="">-- Choose Drama --</option>';
-        data?.forEach(d => {
-            const title = d.title || "Untitled Drama";
-            select.innerHTML += `<option value="${d.id}">${title}</option>`;
-        });
-    }
+    const selects = [document.getElementById("drama-select"), document.getElementById("auto-split-drama-select")];
+
+    selects.forEach(select => {
+        if (select) {
+            select.innerHTML = '<option value="">-- Choose Drama --</option>';
+            data?.forEach(d => {
+                const title = d.title || "Untitled Drama";
+                select.innerHTML += `<option value="${d.id}">${title}</option>`;
+            });
+        }
+    });
 }
 
 async function loadDramasForMgmtSelect() {
@@ -97,19 +100,36 @@ async function loadDramasTable() {
 }
 
 async function createDrama() {
-    const vals = {
-        title: document.getElementById("title").value,
-        poster_url: document.getElementById("poster").value,
-        description: document.getElementById("description").value,
-        genre: document.getElementById("genre").value,
-        rating: parseFloat(document.getElementById("rating").value) || 0,
-        watchmode_id: currentWatchmodeId
-    };
-    if (!vals.title || !vals.poster_url) return alert("Missing fields");
+    const title = document.getElementById("title").value;
+    const description = document.getElementById("description").value;
+    const genre = document.getElementById("genre").value;
+    const rating = parseFloat(document.getElementById("rating").value) || 0;
+
+    // Check for file upload first
+    let poster_url = await uploadImage('poster-file');
+
+    // If no file, use the URL field
+    if (!poster_url) {
+        poster_url = document.getElementById("poster").value;
+    }
+
+    if (!title || !poster_url) return alert("Title and Poster (URL or File) are required.");
+
+    const vals = { title, poster_url, description, genre, rating };
+
     const { error } = await supabase.from("dramas").insert(vals);
     if (error) return alert(error.message);
+
     alert("Drama Created!");
     switchSection('manage-dramas');
+
+    // Clear fields
+    document.getElementById("title").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("genre").value = "";
+    document.getElementById("rating").value = "";
+    document.getElementById("poster").value = "";
+    document.getElementById("poster-file").value = "";
 }
 
 async function openEditDrama(id) {
@@ -118,23 +138,61 @@ async function openEditDrama(id) {
     document.getElementById("edit-title").value = data.title;
     document.getElementById("edit-genre").value = data.genre;
     document.getElementById("edit-rating").value = data.rating;
+    document.getElementById("edit-poster").value = data.poster_url;
     document.getElementById("edit-description").value = data.description;
     document.getElementById("edit-drama-modal").style.display = "flex";
 }
 
 async function updateDrama() {
     const id = document.getElementById("edit-drama-id").value;
+
+    let poster_url = await uploadImage('edit-poster-file');
+    if (!poster_url) {
+        poster_url = document.getElementById("edit-poster").value;
+    }
+
     const upd = {
         title: document.getElementById("edit-title").value,
         genre: document.getElementById("edit-genre").value,
         rating: parseFloat(document.getElementById("edit-rating").value),
-        description: document.getElementById("edit-description").value
+        description: document.getElementById("edit-description").value,
+        poster_url: poster_url
     };
     const { error } = await supabase.from("dramas").update(upd).eq("id", id);
     if (error) return alert(error.message);
     alert("Updated!");
     closeModal('edit-drama-modal');
     loadDramasTable();
+}
+
+async function uploadImage(fileInputId) {
+    const fileInput = document.getElementById(fileInputId);
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) return null;
+
+    const file = fileInput.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `posters/${fileName}`;
+
+    try {
+        const { data, error } = await supabase.storage
+            .from('posters')
+            .upload(filePath, file);
+
+        if (error) {
+            alert("Storage Error: " + error.message + ". Make sure you have a 'posters' bucket in Supabase storage.");
+            return null;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('posters')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    } catch (err) {
+        console.error("Upload failed", err);
+        return null;
+    }
 }
 
 async function deleteDrama(id, title) {
@@ -217,142 +275,58 @@ async function deleteEpisode(id, dramaId) {
     loadEpisodesForMgmt(dramaId);
 }
 
-// --- SEARCH & IMPORT ---
-const BACKEND_URL = "http://localhost:4000";
-let currentWatchmodeId = null;
-
-async function searchWatchmode() {
-    const q = document.getElementById("watchmode-search").value;
-    if (!q) return;
-    const res = await fetch(`${BACKEND_URL}/api/watchmode/search?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
-    const div = document.getElementById("search-results");
-    div.innerHTML = "";
-    div.style.display = "block";
-    data.results.slice(0, 5).forEach(i => {
-        div.innerHTML += `<div onclick="fillFromWatchmode('${i.id}')" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #333;">${i.name} (${i.year})</div>`;
-    });
-}
-
-async function fillFromWatchmode(id) {
-    currentWatchmodeId = id;
-    const res = await fetch(`${BACKEND_URL}/api/watchmode/details/${id}`);
-    const data = await res.json();
-    document.getElementById("title").value = data.title;
-    document.getElementById("poster").value = data.poster;
-    document.getElementById("description").value = data.plot_overview;
-    document.getElementById("genre").value = data.genre_names?.join(", ");
-    document.getElementById("rating").value = data.user_rating;
-    document.getElementById("search-results").style.display = "none";
-}
-
-async function smartImport() {
-    alert("Smart Import is being upgraded for automated indexing. Please use Watchmode Sync for now.");
-}
-
-function setSearchQuery(q) {
-    document.getElementById("watchmode-search").value = q;
-    searchWatchmode();
-}
-
-async function syncWatchmodeEpisodes() {
-    const dramaId = document.getElementById("drama-select").value;
-    if (!dramaId) return alert("Please select a drama first.");
-
-    const { data: drama, error: dramaErr } = await supabase
-        .from("dramas")
-        .select("watchmode_id, title")
-        .eq("id", dramaId)
-        .single();
-
-    if (dramaErr || !drama?.watchmode_id) {
-        return alert("This drama doesn't have a Watchmode ID. Please search and import it first.");
-    }
-
-    if (!confirm(`Deep Sync episodes for "${drama.title}"? This will fetch unique sources for EVERY episode.`)) return;
-
-    const overlay = document.createElement("div");
-    overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; font-family: 'Outfit', sans-serif;";
-    overlay.innerHTML = `<h2 style="margin-bottom:10px;">Syncing "${drama.title}"</h2><p id="sync-progress" style="color:var(--accent); font-weight:bold;">Starting...</p>`;
-    document.body.appendChild(overlay);
-
-    try {
-        const epRes = await fetch(`${BACKEND_URL}/api/watchmode/episodes/${drama.watchmode_id}`);
-        const episodes = await epRes.json();
-
-        if (!Array.isArray(episodes)) throw new Error("Could not find episode list.");
-
-        const syncedData = [];
-        const OFFICIAL_PLATFORMS = ["netflix.com", "mxplayer.in", "primevideo.com", "hotstar.com", "viki.com", "zee5.com", "jiocinema.com"];
-
-        for (let i = 0; i < episodes.length; i++) {
-            const ep = episodes[i];
-            const prog = document.getElementById("sync-progress");
-            prog.innerHTML = `Fetching Episode ${ep.episode_number} (${i + 1}/${episodes.length})...<br><small id="source-found" style="color:#666;">Searching...</small>`;
-
-            try {
-                // Fetch sources for this specific episode ID
-                const titleId = ep.id || drama.watchmode_id;
-                const srcRes = await fetch(`${BACKEND_URL}/api/watchmode/sources/${titleId}`);
-                const sources = await srcRes.json();
-
-                let bestUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"; // Fallback
-                let sourceName = "Fallback YouTube";
-
-                if (Array.isArray(sources) && sources.length > 0) {
-                    // 1. Try to find an official platform first
-                    const official = sources.find(s => OFFICIAL_PLATFORMS.some(p => s.web_url.includes(p)));
-
-                    if (official) {
-                        bestUrl = official.web_url;
-                        sourceName = "Official: " + official.name;
-                    } else {
-                        // 2. Try any free source
-                        const free = sources.find(s => s.type === "free");
-                        if (free) {
-                            bestUrl = free.web_url;
-                            sourceName = "Free: " + free.name;
-                        } else {
-                            // 3. Just take the first one
-                            bestUrl = sources[0].web_url;
-                            sourceName = "Other: " + sources[0].name;
-                        }
-                    }
-                }
-
-                const srcDisplay = document.getElementById("source-found");
-                if (srcDisplay) srcDisplay.innerText = `Found on ${sourceName}`;
-
-                syncedData.push({
-                    drama_id: dramaId,
-                    episode_number: ep.episode_number,
-                    video_url: bestUrl,
-                    price: ep.episode_number > 5 ? 5 : 0 // First 5 free
-                });
-            } catch (innerErr) {
-                console.warn(`Failed for episode ${ep.episode_number}`, innerErr);
-            }
-        }
-
-        const { error: upsertErr } = await supabase
-            .from("episodes")
-            .upsert(syncedData, { onConflict: 'drama_id, episode_number' });
-
-        if (upsertErr) throw upsertErr;
-
-        alert(`Sync Complete! ${syncedData.length} episodes updated.`);
-    } catch (err) {
-        alert("Sync error: " + err.message);
-    } finally {
-        document.body.removeChild(overlay);
-        loadEpisodes();
-    }
-}
-
-
 function closeModal(id) { document.getElementById(id).style.display = "none"; }
 
 async function suggestNextEpisode(dramaId) {
     const { data } = await supabase.from("episodes").select("episode_number").eq("drama_id", dramaId).order("episode_number", { ascending: false }).limit(1);
     document.getElementById("episode-no").value = (data?.[0]?.episode_number + 1) || 1;
+}
+
+const BACKEND_URL = "http://localhost:4005";
+
+async function handleAutoSplit() {
+    const dramaId = document.getElementById("auto-split-drama-select").value;
+    const fileInput = document.getElementById("full-video-file");
+    const file = fileInput.files[0];
+
+    if (!dramaId || !file) return alert("Please select a drama and a video file.");
+
+    const btn = document.getElementById("split-btn");
+    const progressDiv = document.getElementById("split-progress");
+    const bar = document.getElementById("split-bar");
+    const status = document.getElementById("split-status");
+
+    btn.disabled = true;
+    progressDiv.style.display = "block";
+    bar.style.width = "20%"; // Start progress
+    status.innerText = "Uploading to server...";
+
+    const formData = new FormData();
+    formData.append("video", file);
+    formData.append("dramaId", dramaId);
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/auto-split`, {
+            method: "POST",
+            body: formData
+        });
+
+        if (!response.ok) throw new Error(await response.text());
+
+        const result = await response.json();
+        bar.style.width = "100%";
+        status.innerText = `Success! ${result.count} episodes created.`;
+        alert(`Successfully split into ${result.count} episodes!`);
+
+        // Reset
+        fileInput.value = "";
+        btn.disabled = false;
+        setTimeout(() => { progressDiv.style.display = "none"; }, 3000);
+        loadDashboardStats();
+    } catch (err) {
+        console.error(err);
+        alert("Split failed: " + err.message);
+        btn.disabled = false;
+        progressDiv.style.display = "none";
+    }
 }

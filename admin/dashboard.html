@@ -344,36 +344,6 @@
             </div>
 
             <div class="admin-card">
-                <div
-                    style="background: rgba(255, 44, 85, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px dashed var(--accent);">
-                    <label
-                        style="display: block; margin-bottom: 8px; font-size: 0.8rem; font-weight: 700; color: var(--accent);">QUICK
-                        SEARCH (WATCHMODE)</label>
-                    <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="admin-btn" onclick="setSearchQuery('Hindi Dubbed Korean Drama')"
-                            style="background: var(--primary); width: auto; font-size: 0.8rem; padding: 5px 15px; margin-top: 0;">
-                            <i data-lucide="languages" style="width:14px;"></i> Hindi Dubbed
-                        </button>
-                        <button class="admin-btn" onclick="setSearchQuery('Short Drama')"
-                            style="background: var(--accent); width: auto; font-size: 0.8rem; padding: 5px 15px; margin-top: 0;">
-                            <i data-lucide="zap" style="width:14px;"></i> Short Dramas
-                        </button>
-                        <button class="admin-btn" onclick="setSearchQuery('Mini Series')"
-                            style="background: #e17055; width: auto; font-size: 0.8rem; padding: 5px 15px; margin-top: 0;">
-                            <i data-lucide="star" style="width:14px;"></i> Mini Series
-                        </button>
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <input id="watchmode-search" placeholder="Search title..." style="flex: 1;">
-                        <button onclick="searchWatchmode()" class="admin-btn"
-                            style="width: auto; padding: 10px 20px; margin-top: 0;"><i
-                                data-lucide="search"></i></button>
-                    </div>
-                    <div id="search-results"
-                        style="margin-top: 10px; max-height: 200px; overflow-y: auto; display: none; background: var(--bg-dark); border-radius: 8px; border: 1px solid var(--border);">
-                    </div>
-                </div>
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
                         <label>Drama Title</label>
@@ -388,8 +358,15 @@
                         <input id="rating" placeholder="e.g. 8.5">
                     </div>
                     <div class="form-group">
-                        <label>Poster URL</label>
-                        <input id="poster" placeholder="https://image.url/poster.jpg">
+                        <label>Drama Poster (URL or Upload)</label>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <input id="poster" placeholder="Paste image URL here...">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 0.8rem; color: var(--text-secondary);">OR</span>
+                                <input type="file" id="poster-file" accept="image/*"
+                                    style="padding: 8px; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px dashed var(--border); border-radius: 8px; cursor: pointer; display: block; width: 100%; direction: ltr;">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -401,17 +378,36 @@
                 </button>
             </div>
 
-            <div class="admin-card">
-                <h3><i data-lucide="link"></i> Smart Import (Playlist/URL)</h3>
-                <div class="form-group" style="display: flex; gap: 10px;">
-                    <input id="import-url" placeholder="Paste YouTube Playlist URL..." style="flex: 1;">
-                    <button class="admin-btn" onclick="smartImport()" style="width: auto; padding: 0 30px;">Import
-                        All</button>
+            <div class="admin-card" style="margin-top: 20px; border: 1px dashed var(--accent);">
+                <h3><i data-lucide="scissors"></i> Full Drama Auto-Split</h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">
+                    Upload a full movie/drama and it will be split into 2-minute episodes automatically.
+                </p>
+                <div class="form-group">
+                    <label>Select Drama Destination</label>
+                    <select id="auto-split-drama-select">
+                        <option value="">-- Choose Drama --</option>
+                    </select>
                 </div>
-                <div id="import-status"
-                    style="display: none; padding: 15px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+                <div class="form-group">
+                    <label>Full Video File</label>
+                    <input type="file" id="full-video-file" accept="video/*">
+                </div>
+                <button class="admin-btn" onclick="handleAutoSplit()" id="split-btn">
+                    <i data-lucide="zap"></i> Start Auto-Split & Upload
+                </button>
+                <div id="split-progress" style="display:none; margin-top:15px; text-align:center;">
+                    <div
+                        style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; overflow:hidden;">
+                        <div id="split-bar" style="width:0%; height:100%; background:var(--accent); transition:0.3s;">
+                        </div>
+                    </div>
+                    <p id="split-status" style="font-size:0.8rem; margin-top:8px; color:var(--accent);">Processing...
+                        (This
+                        may take several minutes)</p>
                 </div>
             </div>
+
         </section>
 
         <!-- MANAGE DRAMAS -->
@@ -461,14 +457,9 @@
                     <label>Video URL (MP4 or YouTube)</label>
                     <input id="video-url" placeholder="https://...">
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="admin-btn" onclick="uploadEpisode()" style="flex: 2;">
-                        <i data-lucide="upload"></i> Upload Episode
-                    </button>
-                    <button class="admin-btn secondary" onclick="syncWatchmodeEpisodes()" style="flex: 1;">
-                        <i data-lucide="refresh-cw"></i> Sync API
-                    </button>
-                </div>
+                <button class="admin-btn" onclick="uploadEpisode()">
+                    <i data-lucide="upload"></i> Upload Episode
+                </button>
             </div>
         </section>
 
@@ -515,6 +506,17 @@
             <div class="form-group">
                 <label>Rating</label>
                 <input id="edit-rating">
+            </div>
+            <div class="form-group">
+                <label>Drama Poster (URL or Upload)</label>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input id="edit-poster" placeholder="Paste image URL here...">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.8rem; color: var(--text-secondary);">OR</span>
+                        <input type="file" id="edit-poster-file" accept="image/*"
+                            style="padding: 8px; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px dashed var(--border); border-radius: 8px; cursor: pointer; display: block; width: 100%; direction: ltr;">
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label>Description</label>

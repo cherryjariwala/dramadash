@@ -96,20 +96,115 @@ async function watchAdAndEarn() {
     const originalContent = btn.innerHTML;
 
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Watching Ad...';
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Loading Ad...';
     if (window.lucide) lucide.createIcons();
 
-    // Simulate ad watching (3 seconds)
-    setTimeout(async () => {
-        await addCoins(currentUser.id, 10, "Watched Ad");
-        alert("Success! You earned 10 coins.");
+    try {
+        const adFinished = await showRewardedAd();
 
+        if (adFinished) {
+            await addCoins(currentUser.id, 10, "Watched Rewarded Ad");
+            alert("✨ Success! 10 coins added to your wallet.");
+        }
+    } catch (err) {
+        console.error("Ad Error:", err);
+        alert("Could not load ad at this moment.");
+    } finally {
         btn.disabled = false;
         btn.innerHTML = originalContent;
         if (window.lucide) lucide.createIcons();
-
         loadWallet();
-    }, 3000);
+    }
+}
+
+function showRewardedAd() {
+    return new Promise((resolve) => {
+        const adOverlay = document.createElement("div");
+        adOverlay.style = `
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            backdrop-filter: blur(10px);
+        `;
+
+        adOverlay.innerHTML = `
+            <div style="text-align:center; background: var(--bg-card); padding: 40px; border-radius: 24px; border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); max-width: 90%; width: 400px;">
+                <div style="margin-bottom: 20px; color: var(--accent);">
+                    <i data-lucide="play-circle" style="width: 48px; height: 48px;"></i>
+                </div>
+                <h2 style="margin-bottom: 10px;">Watching Rewarded Ad</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 30px;">Please wait for the ad to finish to claim your 10 coins.</p>
+                
+                <div id="ad-placeholder" style="width: 100%; height: 200px; background: #000; border-radius: 12px; margin-bottom: 25px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                    <div class="loader" style="border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;"></div>
+                    <p style="position: absolute; bottom: 10px; font-size: 0.7rem; opacity: 0.5;">REAL-TIME AD LOADING...</p>
+                </div>
+
+                <div id="ad-timer-container" style="width: 100%; background: rgba(255,255,255,0.05); height: 6px; border-radius: 3px; margin-bottom: 15px; overflow: hidden;">
+                    <div id="ad-progress" style="width: 0%; height: 100%; background: var(--accent); transition: width 1s linear;"></div>
+                </div>
+
+                <p id="ad-timer-text" style="font-weight: 600; color: var(--text-secondary);">15 seconds remaining</p>
+                
+                <button id="close-ad-btn" style="margin-top: 20px; background: none; border: none; color: #666; cursor: pointer; text-decoration: underline; font-size: 0.8rem;">Cancel & Skip Reward</button>
+            </div>
+            <style>
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            </style>
+        `;
+
+        document.body.appendChild(adOverlay);
+        if (window.lucide) lucide.createIcons();
+
+        let timeLeft = 15;
+        const totalTime = 15;
+
+        const timer = setInterval(() => {
+            timeLeft--;
+            const progress = ((totalTime - timeLeft) / totalTime) * 100;
+            const progressEl = document.getElementById("ad-progress");
+            const textEl = document.getElementById("ad-timer-text");
+
+            if (progressEl) progressEl.style.width = `${progress}%`;
+            if (textEl) textEl.innerText = `${timeLeft} seconds remaining`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                textEl.innerHTML = `<span style="color: #4ade80;">✨ Ad Finished!</span>`;
+                const btnContainer = document.getElementById("ad-timer-text").parentNode;
+
+                // Replace text with Claim Button
+                const claimBtn = document.createElement("button");
+                claimBtn.innerHTML = "Claim 10 Coins";
+                claimBtn.style = "width: 100%; padding: 15px; background: var(--accent); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; animation: pulse 1.5s infinite;";
+
+                // Add pulse animation
+                const style = document.createElement('style');
+                style.innerHTML = `@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }`;
+                document.head.appendChild(style);
+
+                claimBtn.onclick = () => {
+                    document.body.removeChild(adOverlay);
+                    resolve(true);
+                };
+                textEl.parentNode.replaceChild(claimBtn, textEl);
+                document.getElementById("close-ad-btn").style.display = "none";
+            }
+        }, 1000);
+
+        document.getElementById("close-ad-btn").onclick = () => {
+            clearInterval(timer);
+            document.body.removeChild(adOverlay);
+            resolve(false);
+        };
+    });
 }
 // --- STORE & PAYMENTS ---
 
