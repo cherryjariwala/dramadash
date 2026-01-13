@@ -580,3 +580,92 @@ video {
         align-items: flex-start;
     }
 }
+
+/* STORE STYLES */
+.store-modal-content {
+    max-width: 700px;
+}
+
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.store-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 30px 20px;
+    text-align: center;
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.store-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.store-card.featured {
+    border-color: var(--accent);
+    background: rgba(255, 44, 85, 0.05);
+}
+
+.store-card.featured .badge {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.65rem;
+    margin-bottom: 0;
+}
+
+.package-coins {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.package-coins i {
+    width: 28px;
+    height: 28px;
+    color: #ffd700;
+}
+
+.package-price {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 25px;
+}
+
+.buy-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.store-card:hover .buy-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.store-card.featured .buy-btn {
+    background: var(--accent);
+    border-color: var(--accent);
+}

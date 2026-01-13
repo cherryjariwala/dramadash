@@ -17,7 +17,7 @@
         body {
             display: flex;
             background: var(--bg-dark);
-            min-height: 100vh;
+            height: 100vh;
             overflow: hidden;
         }
 
@@ -335,15 +335,6 @@
                 </div>
             </div>
 
-            <div class="admin-card" style="margin-top: 30px;">
-                <h3><i data-lucide="zap"></i> Quick Seed (Testing)</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">Use this to quickly
-                    test the vertical short drama experience.</p>
-                <button class="admin-btn" onclick="seedSampleDrama()"
-                    style="width: auto; padding: 12px 25px; background: #00b894;">
-                    Seed Sample Content
-                </button>
-            </div>
         </section>
 
         <!-- ADD DRAMA -->
@@ -358,6 +349,20 @@
                     <label
                         style="display: block; margin-bottom: 8px; font-size: 0.8rem; font-weight: 700; color: var(--accent);">QUICK
                         SEARCH (WATCHMODE)</label>
+                    <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="admin-btn" onclick="setSearchQuery('Hindi Dubbed Korean Drama')"
+                            style="background: var(--primary); width: auto; font-size: 0.8rem; padding: 5px 15px; margin-top: 0;">
+                            <i data-lucide="languages" style="width:14px;"></i> Hindi Dubbed
+                        </button>
+                        <button class="admin-btn" onclick="setSearchQuery('Short Drama')"
+                            style="background: var(--accent); width: auto; font-size: 0.8rem; padding: 5px 15px; margin-top: 0;">
+                            <i data-lucide="zap" style="width:14px;"></i> Short Dramas
+                        </button>
+                        <button class="admin-btn" onclick="setSearchQuery('Mini Series')"
+                            style="background: #e17055; width: auto; font-size: 0.8rem; padding: 5px 15px; margin-top: 0;">
+                            <i data-lucide="star" style="width:14px;"></i> Mini Series
+                        </button>
+                    </div>
                     <div style="display: flex; gap: 10px;">
                         <input id="watchmode-search" placeholder="Search title..." style="flex: 1;">
                         <button onclick="searchWatchmode()" class="admin-btn"

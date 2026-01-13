@@ -23,7 +23,7 @@
         <div class="nav-content">
             <div class="logo">DRAMA<span>DASH</span></div>
             <div class="nav-right">
-                <div id="wallet" class="wallet-pill">
+                <div id="wallet" class="wallet-pill" onclick="openStore()" style="cursor: pointer;">
                     <i data-lucide="coins"></i>
                     <span>0</span>
                 </div>
@@ -102,6 +102,42 @@
             </div>
         </div>
     </div>
+
+    <!-- STORE MODAL -->
+    <div id="store-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeStore()"></div>
+        <div class="modal-content store-modal-content">
+            <div class="modal-header">
+                <h3><i data-lucide="shopping-cart"></i> Coin Store</h3>
+                <button class="close-btn" onclick="closeStore()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <p style="color: var(--text-secondary); margin-bottom: 25px;">Top up your wallet to unlock premium
+                episodes.</p>
+
+            <div class="store-grid">
+                <div class="store-card" onclick="initiatePurchase(50, 49)">
+                    <div class="package-coins"><i data-lucide="coins"></i> 50</div>
+                    <div class="package-price">₹49</div>
+                    <button class="buy-btn">Buy Now</button>
+                </div>
+                <div class="store-card featured" onclick="initiatePurchase(150, 99)">
+                    <div class="badge">Most Popular</div>
+                    <div class="package-coins"><i data-lucide="coins"></i> 150</div>
+                    <div class="package-price">₹99</div>
+                    <button class="buy-btn">Buy Now</button>
+                </div>
+                <div class="store-card" onclick="initiatePurchase(500, 249)">
+                    <div class="package-coins"><i data-lucide="coins"></i> 500</div>
+                    <div class="package-price">₹249</div>
+                    <button class="buy-btn">Buy Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         lucide.createIcons();
     </script>

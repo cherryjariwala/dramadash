@@ -132,15 +132,16 @@ function playVideo(url, epNo, epId) {
             <iframe width="100%" height="100%" 
                 src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
                 frameborder="0" allow="autoplay; encrypted-media" 
-                allowfullscreen style="aspect-ratio: 9/16; height: 100%;">
+                allowfullscreen referrerpolicy="strict-origin-when-cross-origin"
+                style="aspect-ratio: 9/16; height: 100%;">
             </iframe>`;
 
-        // Simulating end for coins (since we can't easily track iframe events without API)
+        // Simulating end for coins
         setTimeout(async () => {
             await addCoins(currentUser.id, 2, "Watched YouTube Episode");
             loadWallet();
         }, 30000); // Reward after 30s
-    } else {
+    } else if (url.match(/\.(mp4|webm|ogg)$/) || url.includes("storage.googleapis.com")) {
         videoContainer.innerHTML = `<video id="video" controls controlsList="nodownload" style="width: 100%; height: 100%;"></video>`;
         const newVideo = document.getElementById("video");
         newVideo.src = url;
@@ -149,6 +150,11 @@ function playVideo(url, epNo, epId) {
             await addCoins(currentUser.id, 2, "Watched Episode");
             loadWallet();
         };
+    } else {
+        // External Streaming Link (Netflix, Hulu, etc.)
+        window.open(url, "_blank");
+        closePlayer();
+        alert("This drama is available on an external platform. Opening in a new tab...");
     }
 }
 
